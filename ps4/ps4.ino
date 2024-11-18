@@ -1,17 +1,9 @@
-
-// Simple test of USB Host Mouse/Keyboard
-//
-// This example is in the public domain
-
 #include "USBHost_t36.h"
-
 
 USBHost myusb;   // initializes and manages the USB host port, enabling Teensy to detect and commuincate with USB bluetooth dongle
 USBHIDParser hid1(myusb);  //works behind the scenes to parse HID data that comes from the PS4 controller, such as joystick movements and button presses.
 JoystickController joystick(myusb);
 BluetoothController bluet(myusb, true, "0000");   // Version does pairing to device
-//BluetoothController bluet(myusb);   // version assumes it already was paired
-
 
 void setup()
 {
