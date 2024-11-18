@@ -10,8 +10,6 @@ USBHost myusb;   // initializes and manages the USB host port, enabling Teensy t
 USBHIDParser hid1(myusb);  //works behind the scenes to parse HID data that comes from the PS4 controller, such as joystick movements and button presses.
 JoystickController joystick(myusb);
 BluetoothController bluet(myusb, true, "0000");   // Version does pairing to device
-//BluetoothController bluet(myusb);   // version assumes it already was paired
-
 
 //coordinates of joystick (x,y -> right joystick; leftX -> left joystick)
 int x, y, leftX;  
@@ -27,9 +25,7 @@ unsigned long lastTime = 0;   // Last time RPM was calculated
 long lastPosition = 0;        // Last encoder position
 float currentRPM = 0.0;       // Calculated RPM
 
-//const int pulsesPerRevolution = 325; // Set based on your encoder
 const unsigned long interval = 75;   // Time interval in milliseconds
-//const int gearRatio = 10;            // Planetary motor gear ratio
 
 void setup() {
   Serial.begin(9600);
@@ -76,9 +72,9 @@ void loop() {
 
   // Calculate RPM every interval milliseconds
   if (currentTime - lastTime >= interval) {
-    long currentPosition = myEnc.read();               // Read current encoder position
-    long positionChange = currentPosition - lastPosition; // Calculate position change
-    lastPosition = currentPosition;                    // Update last position
+    long currentPosition = myEnc.read();                   // Read current encoder position
+    long positionChange = currentPosition - lastPosition;  // Calculate position change
+    lastPosition = currentPosition;                        // Update last position
 
     // Calculate RPM considering gear ratio
     currentRPM = (positionChange / 1300.0)*(60*(1000.0/interval)) ;
@@ -93,7 +89,7 @@ void loop() {
   runMotor1(y);
 }
 void runMotor1(float speed) {
-  int pwmValue = map(speed,-84.67,84.67, -255, 255);
+  int pwmValue = map(speed,-127,127, -255, 255);
   pwmValue = abs(pwmValue); 
   if (speed > 0) {      //to check direction: if +ve - HIGH, else LOW
     digitalWrite(motorDir, HIGH);
