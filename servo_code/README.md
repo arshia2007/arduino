@@ -1,0 +1,1 @@
+This code is written for testing of 2 servo motors working simultaneously. It takes input in terms of angle (in degree) from serial monitor and moves the servo motor to that angle 
