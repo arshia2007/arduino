@@ -9,7 +9,6 @@ Encoder myEnc(31, 30);
 long currentCounts;
 
 volatile long encoderCounts = 0; // Shared variable to track encoder counts
-//volatile double rpm = 0;         // Stores the calculated RPM
 
 IntervalTimer timer; // Timer object for periodic execution
 
