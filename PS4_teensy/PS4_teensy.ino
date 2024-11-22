@@ -56,8 +56,8 @@ void calculateRPM() {
   }
   analogWrite(PWM, pwmValue);
 
-  Serial.print("PWM:");
-  Serial.println(pwmValue);
+  //Serial.print("PWM:");
+  //Serial.println(pwmValue);
 
   //noInterrupts(); 
   long currentCounts = myEnc.read();
@@ -69,8 +69,8 @@ void calculateRPM() {
   rpm = (positionChange / 1300.0) * (60 * (1000.0 / 75));
 
 
-  //Serial.print("RPM: ");
-  //Serial.println(rpm);
+  Serial.print("RPM: ");
+  Serial.println(rpm);
   
 }
 
