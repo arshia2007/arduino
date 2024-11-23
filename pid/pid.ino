@@ -20,49 +20,34 @@ volatile long lastCount = 0;
 volatile double rpm = 0;         // Stores the calculated RPM
 long positionChange;
 
+//pid constants
+float kp = 1.0;
+float ki = 0.1;
+float kd = 0.05;
+
+float sp, pid, prev_err, integ, der;
 
 IntervalTimer timer; // Timer object for periodic execution
 
-
 void calculateRPM() {
 
-  
   myusb.Task(); // Handle USB host tasks
 
   if (joystick.available()) {
-    // Left Stick values (axes 0 and 1)
-    int leftStickX = joystick.getAxis(0);
-    leftX = map(leftStickX, 0, 255, -127, 127);
-
-    // Right Stick values (axes 2 and 5)
-    int rightStickX = joystick.getAxis(2);
-    x = map(rightStickX, 0, 255, -127, 127);
     int rightStickY = joystick.getAxis(5);
     y = map(rightStickY, 0, 255, -127, 127);
 
     // Ignore small joystick values
-    if (abs(x) < 5) x = 0;
     if (abs(y) < 5) y = 0;
-    if (abs(leftX) < 5) leftX = 0;
+
+    sp = map(y, -127, 127, -750, 750);  //mapping joystick to rpm range 
+
   } else {
     Serial.println("Joystick Not Found");
   }
 
-  int pwmValue = map(y,-127,127, -255, 255);
-  pwmValue = abs(pwmValue); 
-  if (y > 0) {      //to check direction: if +ve - HIGH, else LOW
-    digitalWrite(DIR, HIGH);
-  } else if (y < 0) {
-    digitalWrite(DIR, LOW);
-    y = -y;
-  } else {
-    pwmValue = 0;
-  }
-  analogWrite(PWM, pwmValue);
-  
-
-  //Serial.print("PWM:");
-  //Serial.println(pwmValue);
+  //Serial.print("sp: ");
+  //Serial.println(sp);
 
   long currentCounts = myEnc.read();
   positionChange = currentCounts - lastCount;
@@ -71,9 +56,38 @@ void calculateRPM() {
   // Calculate RPM
   rpm = (positionChange / 1300.0) * (60 * (1000.0 / 75));
 
-
-  //Serial.print("RPM: ");
+  //Serial.print("rpm: ");
   //Serial.println(rpm);
+
+  //PID Control
+  float err = sp - rpm;
+  //Serial.print("error: ");
+  //Serial.println(err);
+  integ += (err-prev_err);    //integ += err;
+  der = (err-prev_err);
+  pid = (kp*err) + (ki*integ) + (kd*der);
+  prev_err = err;
+
+  pid = constrain(pid, -255, 255);
+  Serial.print("y: ");
+  //Serial.println(y);
+
+  int pwmValue = abs(pid); 
+  if (pid > 0) {      //to check direction: if +ve - HIGH, else LOW
+    digitalWrite(DIR, HIGH);
+  } else if (pid < 0) {
+    digitalWrite(DIR, LOW);
+  } else {
+    pwmValue = 0;
+  }
+  analogWrite(PWM, pwmValue);
+
+  //Serial.print("sp: ");
+  //Serial.println(sp);
+  //Serial.print("  ap: ");
+  //Serial.println(rpm);
+  //Serial.print("  pid: ");
+  //Serial.println(pid);
   
 }
 
