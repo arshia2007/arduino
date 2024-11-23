@@ -72,8 +72,8 @@ void calculateRPM() {
   rpm = (positionChange / 1300.0) * (60 * (1000.0 / 75));
 
 
-  //Serial.print("RPM: ");
-  //Serial.println(rpm);
+  Serial.print("RPM: ");
+  Serial.println(rpm);
   
 }
 
