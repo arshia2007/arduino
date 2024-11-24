@@ -2,7 +2,7 @@
 #include <IntervalTimer.h> 
 #include "USBHost_t36.h"
 
-Encoder myEnc(28, 27);
+Encoder myEnc(28,27);
 
 //PS4 connection 
 USBHost myusb;   // initializes and manages the USB host port, enabling Teensy to detect and commuincate with USB bluetooth dongle
@@ -15,15 +15,15 @@ int x, y, leftX;
 
 int PWM = 7;
 int DIR = 6;
-volatile long encoderCounts = 0; // Shared variable to track encoder counts
+volatile long encoderCounts = 0;  // Shared variable to track encoder counts
 volatile long lastCount = 0;      
-volatile double rpm = 0;         // Stores the calculated RPM
+volatile double rpm = 0;          // Stores the calculated RPM
 long positionChange;
 
 //pid constants
-float kp = 1.0;
-float ki = 0.1;
-float kd = 0.05;
+float kp = 0.5;
+float ki = 0.01;
+float kd = 0.01;
 
 float sp, pid, prev_err, integ, der;
 
@@ -31,7 +31,7 @@ IntervalTimer timer; // Timer object for periodic execution
 
 void calculateRPM() {
 
-  myusb.Task(); // Handle USB host tasks
+  myusb.Task();   // Handle USB host tasks
 
   if (joystick.available()) {
     int rightStickY = joystick.getAxis(5);
@@ -41,7 +41,6 @@ void calculateRPM() {
     if (abs(y) < 5) y = 0;
 
     sp = map(y, -127, 127, -750, 750);  //mapping joystick to rpm range 
-
   } else {
     Serial.println("Joystick Not Found");
   }
@@ -63,13 +62,13 @@ void calculateRPM() {
   float err = sp - rpm;
   //Serial.print("error: ");
   //Serial.println(err);
-  integ += (err-prev_err);    //integ += err;
-  der = (err-prev_err);
+  integ += err*0.075;             //integ += (err-prev_err);
+  der = (err-prev_err)/0.075;
   pid = (kp*err) + (ki*integ) + (kd*der);
   prev_err = err;
 
   pid = constrain(pid, -255, 255);
-  Serial.print("y: ");
+  //Serial.print("y: ");
   //Serial.println(y);
 
   int pwmValue = abs(pid); 
@@ -82,12 +81,12 @@ void calculateRPM() {
   }
   analogWrite(PWM, pwmValue);
 
-  //Serial.print("sp: ");
-  //Serial.println(sp);
-  //Serial.print("  ap: ");
-  //Serial.println(rpm);
+  Serial.print("sp: ");
+  Serial.println(sp);
+  Serial.print("   rpm: ");
+  Serial.println(rpm);
   //Serial.print("  pid: ");
-  //Serial.println(pid);
+  // Serial.println(pid);
   
 }
 
