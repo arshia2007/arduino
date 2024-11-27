@@ -21,15 +21,15 @@ volatile double rpm = 0;          // Stores the calculated RPM
 long positionChange;
 
 //pid constants
-float kp = 0.5;
+float kp;
 float ki = 0.01;
-float kd = 0.01;
+float kd = 0.05;
 
 float sp, pid, prev_err, integ, der;
 
 IntervalTimer timer; // Timer object for periodic execution
 
-void calculateRPM() {
+void calculatePID() {
 
   myusb.Task();   // Handle USB host tasks
 
@@ -44,9 +44,6 @@ void calculateRPM() {
   } else {
     Serial.println("Joystick Not Found");
   }
-
-  //Serial.print("sp: ");
-  //Serial.println(sp);
 
   long currentCounts = myEnc.read();
   positionChange = currentCounts - lastCount;
@@ -81,12 +78,17 @@ void calculateRPM() {
   }
   analogWrite(PWM, pwmValue);
 
-  Serial.print("sp: ");
-  Serial.println(sp);
-  Serial.print("   rpm: ");
-  Serial.println(rpm);
-  //Serial.print("  pid: ");
+  // printf("sp:");
+  // printf("%f",sp);
+  // printf("rpm:");
+  // printf("%f\n",rpm);
+  // Serial.print("  pid: ");
   // Serial.println(pid);
+
+  Serial.print("sp:");
+  Serial.print(sp);
+  Serial.print("rpm:");
+  Serial.println(rpm);
   
 }
 
@@ -111,5 +113,10 @@ void setup() {
 }
 
 void loop() {
+  if (Serial.available() > 0) {
+
+  String input = Serial.readString();
+  kp = input.toFloat();
+  }
   
 }
