@@ -2,7 +2,7 @@
 #include <IntervalTimer.h> 
 #include "USBHost_t36.h"
 
-Encoder myEnc(28,27);
+Encoder myEnc(12,11);
 
 //PS4 connection 
 USBHost myusb;   // initializes and manages the USB host port, enabling Teensy to detect and commuincate with USB bluetooth dongle
@@ -13,19 +13,23 @@ BluetoothController bluet(myusb, true, "0000");   // Version does pairing to dev
 //coordinates of joystick (x,y -> right joystick; leftX -> left joystick)
 int x, y, leftX; 
 
-int PWM = 7;
-int DIR = 6;
+int PWM = 1;
+int DIR = 0;
 volatile long encoderCounts = 0;  // Shared variable to track encoder counts
 volatile long lastCount = 0;      
 volatile double rpm = 0;          // Stores the calculated RPM
 long positionChange;
 
 //pid constants
-float kp;
-float ki = 0.01;
-float kd = 0.05;
+float kp=0.4;
+float ki = 2.4;
+float kd = 0.0;   //max=0.5
 
-float sp, pid, prev_err, integ, der;
+float sp=0.0;
+float pid=0.0;
+float prev_err=0.0;
+float integ=0.0;
+float der=0.0;
 
 IntervalTimer timer; // Timer object for periodic execution
 
@@ -35,7 +39,7 @@ void calculatePID() {
 
   if (joystick.available()) {
     int rightStickY = joystick.getAxis(5);
-    y = map(rightStickY, 0, 255, -127, 127);
+    y = map(rightStickY, 0, 255, 127, -127);
 
     // Ignore small joystick values
     if (abs(y) < 5) y = 0;
@@ -61,6 +65,7 @@ void calculatePID() {
   //Serial.println(err);
   integ += err*0.075;             //integ += (err-prev_err);
   der = (err-prev_err)/0.075;
+  integ =constrain(integ,-100,100);
   pid = (kp*err) + (ki*integ) + (kd*der);
   prev_err = err;
 
@@ -87,8 +92,16 @@ void calculatePID() {
 
   Serial.print("sp:");
   Serial.print(sp);
-  Serial.print("rpm:");
+  Serial.print(" rpm:");
   Serial.println(rpm);
+  // static int printCounter = 0;
+  // if (printCounter++ % 10 == 0) { // Print every 10th cycle
+  //   Serial.print("sp:");
+  //   Serial.print(sp);
+  //   Serial.print("rpm:");
+  //   Serial.println(rpm);
+  // }
+
   
 }
 
@@ -109,14 +122,16 @@ void setup() {
   pinMode(13, OUTPUT);
   digitalWrite(13, HIGH);
 
-  timer.begin(calculateRPM, 75000);
+  timer.begin(calculatePID, 75000);
 }
 
 void loop() {
   if (Serial.available() > 0) {
 
   String input = Serial.readString();
-  kp = input.toFloat();
+  ki = input.toFloat();
+  // Serial.print("kp: ");
+  // Serial.print(kp);
   }
   
 }
