@@ -22,8 +22,8 @@ long positionChange;
 
 //pid constants
 float kp=0.4;
-float ki = 2.4;
-float kd = 0.0;   //max=0.5
+float ki = 0.0;
+float kd = 0.0;   //max=0.05
 
 float sp=0.0;
 float pid=0.0;
@@ -38,12 +38,12 @@ void calculatePID() {
   myusb.Task();   // Handle USB host tasks
 
   if (joystick.available()) {
-    int rightStickY = joystick.getAxis(5);
-    y = map(rightStickY, 0, 255, 127, -127);
-
+    int rightStickY = joystick.getAxis(1);
+    y = map(rightStickY, 0, 255, -127, 127);
+    
     // Ignore small joystick values
     if (abs(y) < 5) y = 0;
-
+   
     sp = map(y, -127, 127, -750, 750);  //mapping joystick to rpm range 
   } else {
     Serial.println("Joystick Not Found");
@@ -63,13 +63,13 @@ void calculatePID() {
   float err = sp - rpm;
   //Serial.print("error: ");
   //Serial.println(err);
-  integ += err*0.075;             //integ += (err-prev_err);
+  integ =integ+ err*0.075;             //integ += (err-prev_err);
   der = (err-prev_err)/0.075;
-  integ =constrain(integ,-100,100);
+  //integ =constrain(integ,-100,100);
   pid = (kp*err) + (ki*integ) + (kd*der);
   prev_err = err;
 
-  pid = constrain(pid, -255, 255);
+  pid = constrain(pid, -16383, 16383);
   //Serial.print("y: ");
   //Serial.println(y);
 
@@ -116,6 +116,9 @@ void setup() {
   analogWrite(PWM, 0);
   digitalWrite(DIR, LOW);
 
+  analogWriteResolution(14);
+  analogWriteFrequency(0, 9000);
+
   myusb.begin();
   delay(2000);
 
@@ -126,12 +129,13 @@ void setup() {
 }
 
 void loop() {
-  if (Serial.available() > 0) {
 
-  String input = Serial.readString();
-  ki = input.toFloat();
-  // Serial.print("kp: ");
-  // Serial.print(kp);
-  }
+  if (Serial.available() > 0) {
   
+  String input = Serial.readString();
+
+  kp = input.substring(0,3).toFloat();
+  ki = input.substring(3,6).toFloat();
+  kd = input.substring(6).toFloat();
+  }
 }

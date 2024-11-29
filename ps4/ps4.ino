@@ -7,9 +7,11 @@ BluetoothController bluet(myusb, true, "0000");   // Version does pairing to dev
 
 void setup()
 {
-  Serial.begin(115200);  // Use standard Serial for Serial Monitor/Plotter
+  Serial.begin(9600);  // Use standard Serial for Serial Monitor/Plotter
   myusb.begin();
   delay(2000);
+  analogWriteResolution(14);
+  analogWriteFrequency(0, 915527);
 }
 
 void loop()
@@ -20,18 +22,18 @@ void loop()
     // Left Stick values (axes 0 and 1)
     int leftStickX = joystick.getAxis(0);
     int leftStickY = joystick.getAxis(1);
-    int Lx = map(leftStickX, 0, 255, -127, 127);
-    int Ly = map(leftStickY, 0, 255, -127, 127);
+    int Lx = map(leftStickX, 0, 255, -8191, 8191);
+    int Ly = map(leftStickY, 0, 255, 8191, -8191);
 
     // Right Stick values (axes 2 and 3)
     int rightStickX = joystick.getAxis(2);
-    int x = map(rightStickX, 0, 255, -127, 127);
+    int x = map(rightStickX, 0, 16383, 8191, -8191);
     int rightStickY = joystick.getAxis(5);
-    int y = map(rightStickY, 0, 255, -127, 127);
+    int y = map(rightStickY, 0, 16383, 8191, -8191);
 
-    Serial.print("Lx");
+    Serial.print("Lx: ");
     Serial.print(Lx);
-    Serial.print("Ly");
+    Serial.print("Ly: ");
     Serial.println(Ly); 
 
   }
