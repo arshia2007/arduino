@@ -28,6 +28,9 @@ void setup() {
   pinMode(ENB, OUTPUT);
   pinMode(ENC, OUTPUT);
 
+  analogWriteResolution(14);
+  analogWriteFrequency(0, 9000);
+
   //teensy led
   pinMode(13, OUTPUT);
   digitalWrite(13, HIGH);
@@ -84,13 +87,12 @@ void loop() {
 }
 
 void runMotor(int IN, int EN, float speed) {
-  int pwmValue = map(abs(speed), 0, 127, 0, 255);
-  pwmValue = constrain(pwmValue, 0, 100); // Ensure pwmValue is between 0 and 255
+  int pwmValue = map(abs(speed), 0, 127, 0, 16383);
+  pwmValue = constrain(pwmValue, 0, 8000); // Ensure pwmValue is between 0 and 255
   if (speed > 0) {      //to check direction: if +ve - HIGH, else LOW
     digitalWrite(IN, HIGH);
   } else if (speed < 0) {
     digitalWrite(IN, LOW);
-    speed = -speed;
   } else {
     pwmValue = 0;
   }

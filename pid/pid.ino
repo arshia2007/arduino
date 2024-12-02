@@ -2,7 +2,7 @@
 #include <IntervalTimer.h> 
 #include "USBHost_t36.h"
 
-Encoder myEnc(12,11);
+Encoder myEnc(9,8);
 
 //PS4 connection 
 USBHost myusb;   // initializes and manages the USB host port, enabling Teensy to detect and commuincate with USB bluetooth dongle
@@ -13,15 +13,15 @@ BluetoothController bluet(myusb, true, "0000");   // Version does pairing to dev
 //coordinates of joystick (x,y -> right joystick; leftX -> left joystick)
 int x, y, leftX; 
 
-int PWM = 1;
-int DIR = 0;
+int PWM = 3;
+int DIR = 2;
 volatile long encoderCounts = 0;  // Shared variable to track encoder counts
 volatile long lastCount = 0;      
 volatile double rpm = 0;          // Stores the calculated RPM
 long positionChange;
 
 //pid constants
-float kp=0.4;
+float kp=0.0;
 float ki = 0.0;
 float kd = 0.0;   //max=0.05
 
@@ -39,12 +39,12 @@ void calculatePID() {
 
   if (joystick.available()) {
     int rightStickY = joystick.getAxis(1);
-    y = map(rightStickY, 0, 255, -127, 127);
+    y = map(rightStickY, 0, 255, 127, -127);
     
     // Ignore small joystick values
     if (abs(y) < 5) y = 0;
    
-    sp = map(y, -127, 127, -750, 750);  //mapping joystick to rpm range 
+    sp = map(y, -127, 127, -815, 815);  //mapping joystick to rpm range 
   } else {
     Serial.println("Joystick Not Found");
   }
