@@ -135,7 +135,7 @@ void loop() {
   String input = Serial.readString();
 
   kp = input.substring(0,3).toFloat();
-  ki = input.substring(3,6).toFloat();
-  kd = input.substring(6).toFloat();
+  ki = input.substring(3,7).toFloat();
+  kd = input.substring(7).toFloat();
   }
 }

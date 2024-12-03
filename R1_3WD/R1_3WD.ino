@@ -75,10 +75,17 @@ void loop() {
   int V2 = ((x) * (0.33) + (y) * (-0.57) + (leftX) * (0.33)); 
   int V3 = ((x) * (0.33) + (y) * (0.57) + (leftX) * (0.33)); 
 
+  Serial.print("V1: ");
+  Serial.println(V1);
+  Serial.print("V2: ");
+  Serial.println(V2);
+  Serial.print("V3: ");
+  Serial.println(V3);
+
   // Set motor speeds based on calculated velocities
-  runMotor(IN1, ENA, V1);
-  runMotor(IN2, ENB, V2);
-  runMotor(IN3, ENC, V3);
+  //runMotor(IN1, ENA, V1);
+  //runMotor(IN2, ENB, V2);
+  //runMotor(IN3, ENC, V3);
 
   delay(200);  // Small delay for stability
 }
