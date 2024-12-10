@@ -2,7 +2,7 @@
 #include <IntervalTimer.h> 
 #include "USBHost_t36.h"
 
-Encoder myEnc(9,8);
+Encoder myEnc(9, 8);
 
 //PS4 connection 
 USBHost myusb;   // initializes and manages the USB host port, enabling Teensy to detect and commuincate with USB bluetooth dongle
@@ -11,19 +11,19 @@ JoystickController joystick(myusb);
 BluetoothController bluet(myusb, true, "0000");   // Version does pairing to device
 
 //coordinates of joystick (x,y -> right joystick; leftX -> left joystick)
-int x, y, leftX; 
+int y; 
 
-int PWM = 3;
-int DIR = 2;
+int PWM = 1;
+int DIR = 0;
 volatile long encoderCounts = 0;  // Shared variable to track encoder counts
 volatile long lastCount = 0;      
 volatile double rpm = 0;          // Stores the calculated RPM
 long positionChange;
 
 //pid constants
-float kp=0.0;
+float kp = 0.0;
 float ki = 0.0;
-float kd = 0.0;   //max=0.05
+float kd = 0.0;   
 
 float sp=0.0;
 float pid=0.0;
@@ -34,6 +34,16 @@ float der=0.0;
 IntervalTimer timer; // Timer object for periodic execution
 
 void calculatePID() {
+  unsigned long startTime = micros();
+
+  if (Serial.available() > 0) {
+  
+  String input = Serial.readString();
+
+  kp = input.substring(0,3).toFloat();
+  ki = input.substring(3,6).toFloat();
+  kd = input.substring(6).toFloat();
+  }
 
   myusb.Task();   // Handle USB host tasks
 
@@ -44,7 +54,7 @@ void calculatePID() {
     // Ignore small joystick values
     if (abs(y) < 5) y = 0;
    
-    sp = map(y, -127, 127, -815, 815);  //mapping joystick to rpm range 
+    sp = map(y, -127, 127, -250, 250);  //mapping joystick to rpm range
   } else {
     Serial.println("Joystick Not Found");
   }
@@ -55,15 +65,15 @@ void calculatePID() {
 
   // Calculate RPM
   rpm = (positionChange / 1300.0) * (60 * (1000.0 / 75));
-
   //Serial.print("rpm: ");
   //Serial.println(rpm);
+
 
   //PID Control
   float err = sp - rpm;
   //Serial.print("error: ");
   //Serial.println(err);
-  integ =integ+ err*0.075;             //integ += (err-prev_err);
+  integ = integ + (err*0.075);             //integ += (err-prev_err);
   der = (err-prev_err)/0.075;
   //integ =constrain(integ,-100,100);
   pid = (kp*err) + (ki*integ) + (kd*der);
@@ -83,25 +93,14 @@ void calculatePID() {
   }
   analogWrite(PWM, pwmValue);
 
-  // printf("sp:");
-  // printf("%f",sp);
-  // printf("rpm:");
-  // printf("%f\n",rpm);
-  // Serial.print("  pid: ");
-  // Serial.println(pid);
-
   Serial.print("sp:");
   Serial.print(sp);
   Serial.print(" rpm:");
   Serial.println(rpm);
-  // static int printCounter = 0;
-  // if (printCounter++ % 10 == 0) { // Print every 10th cycle
-  //   Serial.print("sp:");
-  //   Serial.print(sp);
-  //   Serial.print("rpm:");
-  //   Serial.println(rpm);
-  // }
 
+  unsigned long currentTime = micros();
+  unsigned long time = currentTime-startTime;
+  Serial.println(time);
   
 }
 
@@ -130,12 +129,4 @@ void setup() {
 
 void loop() {
 
-  if (Serial.available() > 0) {
-  
-  String input = Serial.readString();
-
-  kp = input.substring(0,3).toFloat();
-  ki = input.substring(3,7).toFloat();
-  kd = input.substring(7).toFloat();
-  }
 }

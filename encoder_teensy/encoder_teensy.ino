@@ -1,8 +1,8 @@
 #include <Encoder.h>
 #include "USBHost_t36.h"
 // Encoder pins
-#define encoderA 31  // Encoder Channel A
-#define encoderB 30  // Encoder Channel B
+#define encoderA 28 // Encoder Channel A
+#define encoderB 27  // Encoder Channel B
 
 
 //PS4 connection 
@@ -15,8 +15,8 @@ BluetoothController bluet(myusb, true, "0000");   // Version does pairing to dev
 int x, y, leftX;  
 
 // Motor control pins
-#define motorPWM 5  // PWM pin for motor speed
-#define motorDir 4   // Direction control pin
+#define motorPWM 7  // PWM pin for motor speed
+#define motorDir 6   // Direction control pin
 
 // Create Encoder object
 Encoder myEnc(encoderA, encoderB);
@@ -80,6 +80,8 @@ void loop() {
     currentRPM = (positionChange / 1300.0)*(60*(1000.0/interval)) ;
 
     // Print RPM
+    Serial.print("sp: ");
+    Serial.println(y);
     Serial.print("RPM: ");
     Serial.println(currentRPM);
 
