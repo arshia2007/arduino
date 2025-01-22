@@ -78,6 +78,8 @@ void loop() {
   int V2 = ((x) * (0.33) + (y) * (-0.57) + (leftX) * (0.33)); 
   int V3 = ((x) * (0.33) + (y) * (0.57) + (leftX) * (0.33)); 
 
+
+
   // Serial.print("V1: ");
   // Serial.println(V1);
   // Serial.print("V2: ");
