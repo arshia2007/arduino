@@ -1,11 +1,7 @@
 #include <Encoder.h>
 #include "USBHost_t36.h"
 
-Encoder myEnc1(14, 15);
-Encoder myEnc2(39, 38);
-Encoder myEnc3(40, 41);
-Encoder myEnc4(0, 1);
-Encoder myEnc5(2, 3);
+Encoder myEnc[5] = { Encoder(14,15), Encoder(39,38), Encoder(40,41), Encoder(0,1), Encoder(2,3) };
 
 // Motor driver pins
 int IN1 = 20; // Motor 1
@@ -17,10 +13,10 @@ int ENA = 22; // Motor 1 PWM pin
 int ENB = 19; // Motor 2 PWM pin
 int ENC = 23; // Motor 3 PWM pin
 
-volatile long encoderCounts = 0;  // Shared variable to track encoder counts
-volatile long lastCount1, lastCount2, lastCount3, lastCount4, lastCount5= 0;      
-volatile double rpm1, rpm2, rpm3, rpm4, rpm5 = 0;          // Stores the calculated RPM
-long positionChange1, positionChange2, positionChange3, positionChange4, positionChange5;
+long currentCounts[5] = {0,0,0,0,0};
+volatile long lastCount[5] = {0,0,0,0,0};        
+volatile double rpm[5] = {0,0,0,0,0};          // Stores the calculated RPM
+long positionChange[5] = {0,0,0,0,0};
 
 //PS4 connection 
 USBHost myusb;   // initializes and manages the USB host port, enabling Teensy to detect and commuincate with USB bluetooth dongle
@@ -85,34 +81,13 @@ void loop() {
     delay(500);
   }
 
-  long currentCounts1 = myEnc1.read();
-  positionChange1 = currentCounts1 - lastCount1;
-  lastCount1 = currentCounts1;
-
-  long currentCounts2 = myEnc2.read();
-  positionChange2 = currentCounts2 - lastCount2;
-  lastCount2 = currentCounts2;
-
-  long currentCounts3 = myEnc3.read();
-  positionChange3 = currentCounts3 - lastCount3;
-  lastCount3 = currentCounts3;
-
-  long currentCounts4 = myEnc4.read();
-  positionChange4 = currentCounts4 - lastCount4;
-  lastCount4 = currentCounts4;
-
-  long currentCounts5 = myEnc5.read();
-  positionChange5 = currentCounts5 - lastCount5;
-  lastCount5 = currentCounts5;
-
-
-
   // Calculate RPM
-  rpm1 = (positionChange1 / 1300.0) * (60 * (1000.0 / 75));
-  rpm2 = (positionChange2 / 1300.0) * (60 * (1000.0 / 75));
-  rpm3 = (positionChange3 / 1300.0) * (60 * (1000.0 / 75));
-  rpm4 = (positionChange4 / 17500.0) * (60 * (1000.0 / 75));
-  rpm5 = (positionChange5 / 17500.0) * (60 * (1000.0 / 75));
+  for (int i=0; i<5; i++){
+    currentCounts[i] = myEnc[i].read();
+    positionChange[i] = currentCounts[i] - lastCount[i];
+    rpm[i] = (positionChange[i] / 1300.0) * (60 * (1000.0 / 75));
+    lastCount[i] = currentCounts[i];
+  }
 
 
   Serial.print("rpm1: ");
@@ -130,8 +105,6 @@ void loop() {
   int V1 = ((x) * (-0.67) + (y) * 0 + (leftX) * (0.33));        
   int V2 = ((x) * (0.33) + (y) * (-0.57) + (leftX) * (0.33)); 
   int V3 = ((x) * (0.33) + (y) * (0.57) + (leftX) * (0.33)); 
-
-
 
   // Serial.print("V1: ");
   // Serial.println(V1);
