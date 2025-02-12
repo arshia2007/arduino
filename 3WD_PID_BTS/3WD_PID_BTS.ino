@@ -12,8 +12,10 @@ BluetoothController bluet(myusb);   // Version does pairing to device
 
 //coordinates of joystick (x,y -> right joystick; leftX -> left joystick)
 int x, y, leftX;  
-int PWM[3] = {18,22,19};
-int DIR[3] = {16,20,17};
+int RPWM[3] = {18,22,19};   // PWM signals
+int LPWM[3] = {0,0,0};
+// int EN[3] = {16,20,17};    // direction
+
 
 long currentCounts[3] = {0,0,0};
 volatile long lastCount[3] = {0,0,0};      
@@ -198,18 +200,12 @@ void calculatePID() {
   // Serial.printf(" rpm2:%f", rpm[1]);
   // Serial.printf(" rpm3:%f\n", rpm[2]);
 
-    // Serial.print("pid1: ");
-    // Serial.println(pid[0]);
-    // Serial.print("pid2: ");
-    // Serial.println(pid[1]);
-    // Serial.print("pid3: ");
-    // Serial.println(pid[2]);
   }
 
   // Set motor speeds based on calculated velocities
-  runMotor(PWM[0], DIR[0], pid[0]);
-  runMotor(PWM[1], DIR[1], pid[1]);
-  runMotor(PWM[2], DIR[2], pid[2]);
+  runMotor(RPWM[0], LPWM[0], pid[0]);
+  runMotor(RPWM[1], LPWM[1], pid[1]);
+  runMotor(RPWM[2], LPWM[2], pid[2]);
 
   // delay(200);  // Small delay for stability
 
@@ -219,19 +215,27 @@ void calculatePID() {
   
 }
 
-void runMotor(int EN, int IN, float speed) {
+void runMotor(int RPWM, int LPWM, float speed) {
   int pwmValue = abs(speed);
   // int pwmValue = constrain(abs(speed),0,200);
   // int pwmValue = map(abs(speed), 0, 127, 0, 16383);
 
   if (speed > 0) {      // to check direction: if +ve - HIGH, else LOW
-    digitalWrite(IN, HIGH);
+    // digitalWrite(EN, HIGH);
+
+    analogWrite(RPWM, pwmValue);
+    analogWrite(LPWM, 0);
   } else if (speed < 0) {
-    digitalWrite(IN, LOW);
+    // digitalWrite(EN, LOW);
+
+    analogWrite(RPWM, 0);
+    analogWrite(LPWM, pwmValue);
   } else {
-    pwmValue = 0;
+    // digitalWrite(EN, LOW);
+    
+    analogWrite(RPWM, 0);
+    analogWrite(LPWM, 0);
   }
-  analogWrite(EN, pwmValue);
 }
 
 void setup() {
@@ -239,14 +243,16 @@ void setup() {
 
   // Motor control pins setup
   for (int i = 0; i < 3; i++) {
-    pinMode(PWM[i], OUTPUT);
-    pinMode(DIR[i], OUTPUT);
+    pinMode(RPWM[i], OUTPUT);
+    pinMode(LPWM[i], OUTPUT);
+    // pinMode(EN[i], OUTPUT);
 }
 
   // Initialize motor to stop
   for (int i = 0; i < 3; i++) {
-    analogWrite(PWM[i], 0);
-    digitalWrite(DIR[i], LOW);
+    analogWrite(RPWM[i], 0);
+    analogWrite(LPWM[i], 0);
+    // digitalWrite(EN[i], LOW);
 }
 
   analogWriteResolution(14);
