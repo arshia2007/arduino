@@ -45,32 +45,9 @@ void input() {
     kp[i-1] = input.substring(2,9).toFloat();
     ki[i-1] = input.substring(10,17).toFloat();
     kd[i-1] = input.substring(18,24).toFloat();
-
-
-
-    // int comma1 = input.indexOf(',');
-    // int comma2 = input.indexOf(',', comma1 + 1);
-    
-    // if (comma1 > 0 && comma2 > comma1) {
-    //   kp = input.substring(0, comma1).toFloat();
-    //   ki = input.substring(comma1 + 1, comma2).toFloat();
-    //   kd = input.substring(comma2 + 1).toFloat();
-    // }
   }
 }
 
-
-// void input() {
-//   if (Serial.available() > 0) {
-  
-//   String input = Serial.readString();
-
-//   kp = input.substring(0,3).toFloat();    //20
-//   ki = input.substring(3,6).toFloat();    //100
-//   kd = input.substring(6).toFloat();      //0.5
-//   }
-
-// }
 
 void calculatePID() {
   // unsigned long startTime = micros();

@@ -1,19 +1,19 @@
 #include <Encoder.h>
 #include <IntervalTimer.h> 
 
-Encoder myEnc1(40, 41);
+Encoder myEnc1(40,41);
 // Encoder myEnc2(9, 8);
 
 // Motor driver pins
-int motor1PWM = 23;
-int motor1DIR = 21;
+int motor1PWM = 19;
+int motor1DIR = 17;
 // #define motor2PWM 6
 // #define motor2DIR 7
 
 //pid constants
-float kp = 0.0;   //kp=5
-float ki = 0.0;   //ki=0.2
-float kd = 0.0;   //kd=0.1
+float kp = 0.0;   //kp=35
+float ki = 0.0;   //ki=0.5
+float kd = 0.0;   //kd=0.3
 
 double prevError1 = 0, prevError2 = 0;          // double error1, error2, prevError1 = 0, prevError2 = 0;
 int sp = 0;
@@ -49,15 +49,19 @@ void setup() {
 }
 
 void input() {
-  if (Serial.available() > 0) {
+  if (Serial.available() > 0) {       // 0350.50.30
   
   String input = Serial.readString();
 
   kp = input.substring(0,3).toFloat();
   ki = input.substring(3,6).toFloat();
   kd = input.substring(6,9).toFloat();
-  sp = input.substring(9).toInt() / 360.0 * 1300;
+  sp = input.substring(9).toInt() / 360.0 * 535;
   }
+//   Serial.printf(" kp:%f\n", kp);
+// Serial.printf(" ki:%f", ki);
+// Serial.printf(" kd:%f", kd);
+// Serial.printf(" sp:%f", sp);
 }
 
 void calcPID() {
@@ -85,12 +89,14 @@ void calcPID() {
   // prevError2 = err2;
 
   runMotor(motor1PWM,motor1DIR,pid1);
+  // digitalWrite(motor1DIR, (pid1 <= 0 ? LOW : HIGH));
+  // analogWrite(motor1PWM, abs(pid1));
   // runMotor(motor2PWM,motor2DIR,pid2);
 
-  // Serial.print("sp:");
-  // Serial.print(sp);
-  // Serial.print("ticks:");
-  // Serial.println(myEnc1.read());
+  Serial.print("sp:");
+  Serial.print(sp);
+  Serial.print("ticks:");
+  Serial.println(myEnc1.read());
 
 }
 

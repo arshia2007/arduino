@@ -8,12 +8,13 @@ Encoder myEnc[3] = {Encoder(14,15), Encoder(40,41), Encoder(38,39)};
 USBHost myusb;   // initializes and manages the USB host port, enabling Teensy to detect and commuincate with USB bluetooth dongle
 USBHIDParser hid1(myusb);  //works behind the scenes to parse HID data that comes from the PS4 controller, such as joystick movements and button presses.
 JoystickController joystick(myusb);
+// BluetoothController bluet(myusb, true, "0000"); 
 BluetoothController bluet(myusb);   // Version does pairing to device
 
 //coordinates of joystick (x,y -> right joystick; leftX -> left joystick)
 int x, y, leftX;  
-int PWM[3] = {18,22,19};
-int DIR[3] = {16,20,17};
+int PWM[3] = {23, 19, 18};
+int DIR[3] = {21, 17, 16};
 
 long currentCounts[3] = {0,0,0};
 volatile long lastCount[3] = {0,0,0};      
@@ -44,40 +45,22 @@ void input() {
     ki[i-1] = input.substring(10,17).toFloat();
     kd[i-1] = input.substring(18,24).toFloat();
 
-
-
-    // int comma1 = input.indexOf(',');
-    // int comma2 = input.indexOf(',', comma1 + 1);
-    
-    // if (comma1 > 0 && comma2 > comma1) {
-    //   kp = input.substring(0, comma1).toFloat();
-    //   ki = input.substring(comma1 + 1, comma2).toFloat();
-    //   kd = input.substring(comma2 + 1).toFloat();
-    // }
   }
 }
 
 
-// void input() {
-//   if (Serial.available() > 0) {
-  
-//   String input = Serial.readString();
-
-//   kp = input.substring(0,3).toFloat();    //20
-//   ki = input.substring(3,6).toFloat();    //100
-//   kd = input.substring(6).toFloat();      //0.5
-//   }
-
-// }
-
 void calculatePID() {
   // unsigned long startTime = micros();
 
-  input();
-
+  // input();
+// 
   myusb.Task();   // Handle USB host tasks
 
   if (joystick.available()) {
+    // if(joystick.getButtons()){
+    //   // Serial.println("value");
+
+    // }
 
     // Left Stick values (axes 0 and 1)
     int leftStickX = joystick.getAxis(0);
@@ -105,10 +88,10 @@ void calculatePID() {
     // Serial.printf(" y:%d",y);
     // Serial.printf(" left x:%d",leftX);
   }
-  // else{
-  //  // Serial.print("Joystick Not Found");
-  //   delay(500);
-  // }
+  else{
+  //  Serial.print("no value");
+    // delay(500);
+  }
 
   // Serial.print("x: ");
   // Serial.println(x);
