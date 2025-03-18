@@ -9,8 +9,8 @@ IntervalTimer myTimer;
 // int16_t  tfDist;    // distance in centimeters
 // int16_t  tfAddr = TFL_DEF_ADR;  // Use this default I2C address
 
-int roller1_pin=22;//left
-int roller1_spd=20;
+int roller1_pin=21;//left
+int roller1_spd=23;
 
 int roller2_pin=17;//right
 int roller2_spd=19;

@@ -2,9 +2,14 @@
 Servo right;
 Servo left;
 int last1 = 180, last2 = 0, i;
-
+int dir = 21;
+int pwm = 23;
 void setup()
 {
+  pinMode(dir, OUTPUT);
+  pinMode(pwm, OUTPUT);
+  pinMode(13, OUTPUT);
+  digitalWrite(13, HIGH);
   Serial.begin(9600);
   right.attach(36);
   left.attach(37);
@@ -15,6 +20,9 @@ void setup()
 
 void loop()
 {
+  // digitalWrite(dir, HIGH);
+  // analogWrite(pwm,255);
+
   
   Serial.println("angle");
   if (Serial.available() > 0) {  

@@ -2,18 +2,19 @@
 #include <IntervalTimer.h> 
 #include "USBHost_t36.h"
 
-Encoder myEnc[3] = {Encoder(14,15), Encoder(40,41), Encoder(38,39)};
+Encoder myEnc[3] = {Encoder(22,23), Encoder(21,20), Encoder(19,18)};
 
 //PS4 connection 
 USBHost myusb;   // initializes and manages the USB host port, enabling Teensy to detect and commuincate with USB bluetooth dongle
 USBHIDParser hid1(myusb);  //works behind the scenes to parse HID data that comes from the PS4 controller, such as joystick movements and button presses.
 JoystickController joystick(myusb);
+// BluetoothController bluet(myusb, true, "0000");     // Version does connecting to device
 BluetoothController bluet(myusb);   // Version does pairing to device
 
 //coordinates of joystick (x,y -> right joystick; leftX -> left joystick)
-int x, y, leftX;  
-int RPWM[3] = {18,22,19};   // PWM signals
-int LPWM[3] = {0,0,0};
+int x = 0, y = 0, leftX = 0;  
+int LPWM[3] = {14, 10, 12};   // PWM signals
+int RPWM[3] = {15, 13, 11};
 // int EN[3] = {16,20,17};    // direction
 
 
@@ -34,7 +35,7 @@ float prev_err[3] = {0.0, 0.0, 0.0};
 float integ[3] = {0.0, 0.0, 0.0};
 float der[3] = {0.0, 0.0, 0.0}; 
 
-float max_rpm = 500;
+float max_rpm = 100;
 
 IntervalTimer timer; // Timer object for periodic execution
 
@@ -52,7 +53,7 @@ void input() {
 void calculatePID() {
   // unsigned long startTime = micros();
 
-  input();
+  // input();
 
   myusb.Task();   // Handle USB host tasks
 
@@ -106,25 +107,17 @@ void calculatePID() {
   sp[1] = ((x) * (0.33) + (y) * (-0.57) + (leftX) * (-0.33)); 
   sp[2] = ((x) * (0.33) + (y) * (0.57) + (leftX) * (-0.33)); 
   
-  //  Serial.printf(" V1:%d",V1);
-  //   Serial.printf(" V2:%d",V2);
-  //   Serial.printf(" V3:%d\n",V3);
-
-
-  // Serial.print("V1: ");
-  // Serial.println(V1);
-  // Serial.print("V2: ");
-  // Serial.println(V2);
-  // Serial.print("V3: ");
-  // Serial.println(V3);
+  Serial.printf(" sp1:%0.2f", sp[0]);
+  Serial.printf(" sp2:%0.2f", sp[1]);
+  Serial.printf(" sp3:%0.2f", sp[2]);
 
   sp[0] = map(sp[0], -72, 72, -max_rpm, max_rpm);
   sp[1] = map(sp[1], -72, 72, -max_rpm, max_rpm);
   sp[2] = map(sp[2], -72, 72, -max_rpm, max_rpm);
 
-  Serial.printf(" sp1:%0.2f", sp[0]);
-  Serial.printf(" sp2:%0.2f", sp[1]);
-  Serial.printf(" sp3:%0.2f", sp[2]);
+  // Serial.printf(" sp1:%0.2f", sp[0]);
+  // Serial.printf(" sp2:%0.2f", sp[1]);
+  // Serial.printf(" sp3:%0.2f", sp[2]);
 
   // float sp[3];// = {V1, V2, V3};
   // sp[0]=V1;
@@ -146,9 +139,9 @@ void calculatePID() {
     lastCount[i] = currentCounts[i];
 
   }
-  Serial.printf(" rpm1:%f", rpm[0]);
-  Serial.printf(" rpm2:%f", rpm[1]);
-  Serial.printf(" rpm3:%f\n", rpm[2]);
+  // Serial.printf(" rpm1:%f", rpm[0]);
+  // Serial.printf(" rpm2:%f", rpm[1]);
+  // Serial.printf(" rpm3:%f\n", rpm[2]);
 
   //PID Control
   for (int i=0; i<3; i++){
@@ -193,7 +186,7 @@ void calculatePID() {
 }
 
 void runMotor(int RPWM, int LPWM, float speed) {
-  int pwmValue = abs(speed);
+  int pwmValue = int(abs(speed));
   // int pwmValue = constrain(abs(speed),0,200);
   // int pwmValue = map(abs(speed), 0, 127, 0, 16383);
 

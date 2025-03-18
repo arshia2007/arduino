@@ -5,6 +5,13 @@
 #include <Pixy2I2C.h>
 Pixy2I2C pixy;
 
+// teensy right   MD 16/17      MD 14,15
+               // MD 10/13      MD 11/12
+// Encoder:
+      //  feeding - (24,25)
+      //   shooting - 34,35
+      //   rcv - 33,32
+
 volatile int pwm_18=0;
 
 VescUart UART;
@@ -20,11 +27,11 @@ IntervalTimer feed_pid_timer;
 
 
 //driblling 
-int roller1_rpwm=28;//left
-int roller1_lpwm=30;
+int roller1_rpwm=16;//left
+int roller1_lpwm=17;
 
-int roller2_pin=17;//right
-int roller2_spd=19;
+// int roller2_pin=17;//right
+// int roller2_spd=19;
 
 int piston1=1;
 int piston2=0;
@@ -441,7 +448,8 @@ pwm_pid[i] = int(kp[i] * error[i] + ki[i] * eInt[i] + kd[i] * eDer[i]);
 //Serial.printf("pwm_pid:%d \n",pwm_pid[i]);
 
 analogWrite(rpwm[i], (pwm_pid[i] <= 0 ? 0 : abs(pwm_pid[i])));
-analogWrite(lpwm[i], (pwm_pid[i] <= 0 ? abs(pwm_pid[i]) : 0));
+analogWrite(lpwm[i], (pwm_pid[i] >= 0 ? 0 : abs(pwm_pid[i])));
+
 
 // digitalWrite(dir_pin[i], (pwm_pid[i] <= 0 ? LOW : HIGH));
 // analogWrite(pwm_pin[i], abs(pwm_pid[i]));
@@ -606,19 +614,24 @@ void calcPID() {
 //     calcPID(0);         // if ticks reset to 0, then angle = +3580
 // }
 
-void runMotor(int motorPWM, int motorDir, float speed) {
+void runMotor(int rpwm, int lpwm, float speed) {
   int pwm = abs(speed);
   pwm = constrain(pwm, 0, 16383);
   if (speed > 0) {      //to check direction: if +ve - HIGH, else LOW
 
-    digitalWrite(motorDir, HIGH);
+    analogWrite(rpwm, pwm);
+    analogWrite(lpwm, 0);
   } else if (speed < 0) {
-    digitalWrite(motorDir, LOW);
-    speed = -speed;
+      analogWrite(rpwm, 0);
+    analogWrite(lpwm, pwm);
+    // digitalWrite(motorDir, LOW);
+    // speed = -speed;
   } else {
-    pwm = 0;
-  }
-  analogWrite(motorPWM, pwm);
+    // digitalWrite(EN, LOW);
+    
+    analogWrite(rpwm, 0);
+    analogWrite(lpwm, 0);
+}
 }
 
 void loop() {
@@ -735,12 +748,12 @@ delay(500);
 pid_timer.begin(pid, 75000);
 // Serial.println("PID Timer Restarted");
 
-// feeding 
-sp1 = 3000;
-feed_pid_timer.begin(calcPID, 75000);
-if (err1 == 0){
-  feed_pid_timer.end();
-}
+// // feeding 
+// sp1 = 3000;
+// feed_pid_timer.begin(calcPID, 75000);
+// if (err1 == 0){
+//   feed_pid_timer.end();
+// }
 
 }
 

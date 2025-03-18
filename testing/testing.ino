@@ -2,11 +2,11 @@
 #include <Encoder.h>
 #include <VescUart.h>
 #include <Servo.h>
-#include <Pixy2I2C.h>
-Pixy2I2C pixy;
+#include <Pixy2SPI_SS.h>
+Pixy2SPI_SS pixy;
 
 volatile int pwm_18=0;
-
+bool isJoystick = 0;
 VescUart UART;
 
 // IntervalTimer rpm_timer;
@@ -17,14 +17,12 @@ IntervalTimer feed_pid_timer;
 
 // IntervalTimer serial_input_timer;
 
-
-
 //driblling 
-int roller1_pin=28;//left
-int roller1_spd=30;
+int roller1_pin=29;//left
+int roller1_spd=27;
 
-int roller2_pin=17;//right
-int roller2_spd=19;
+// int roller2_pin=17;//right
+// int roller2_spd=19;
 
 int piston1=1;
 int piston2=0;
@@ -45,9 +43,9 @@ Encoder m[3] = { Encoder(14,15), Encoder(40,41), Encoder(38,39) };
 Encoder myEnc1(6,7);   // feeding 
 
 //pid constants
-float Kp = 35.0;   //kp=5
-float Ki = 0.5;   //ki=0.2
-float Kd = 0.3;   //kd=0.1
+float Kp = 50.0;   //kp=35
+float Ki = 0.5;   //ki=0.5
+float Kd = 0.3;   //kd=0.3
 
 double prevError1 = 0;          // double error1, error2, prevError1 = 0, prevError2 = 0;
 int sp1 = 0;
@@ -363,7 +361,8 @@ Serial.printf("\n");
 
 //~~~~~~~~~~~~~~~~~~~~~
 // myusb.Task();
-// if (joystick1.available()) {
+//if (joystick1.available()) {
+  if(isJoystick == true){
 // for (uint8_t i = 0; i < 64; i++) {
 // psAxis_prev[i] = psAxis[i];
 // psAxis[i] = joystick1.getAxis(i);
@@ -403,7 +402,7 @@ else
 w=0;
 int y = psAxisY;
 int x= psAxisX;
-
+  
 Serial.print(x);
 Serial.print("   ok ");
 Serial.print(y);
@@ -417,7 +416,7 @@ for(int i=0;i<3;i++){
  Serial.printf("RPM_%d_input:%0.2f  ",i+1, rpm_sp[i]);
 }
 //~~this block of code is to take the input from the ps4 controller
-
+  }
 
 
 
@@ -560,6 +559,8 @@ void calcPID() {
   // int sp = 0;
 
   // input();
+  Serial.print("sp: ");
+  Serial.println(sp1);
  
   currentCounts1 = myEnc1.read();
   // long currentCounts2 = myEnc2.read();
@@ -571,6 +572,8 @@ void calcPID() {
 
   pid1 = (Kp*err1) + (Ki*integ1) + (Kd*der1);
   prevError1 = err1;
+  Serial.printf("error: %f", err1);
+  Serial.printf("pid: %f\n", pid1);
 
   // PID Control (for M2)
   // float err2 = sp - currentCounts2;
@@ -616,11 +619,16 @@ void loop() {
 
   myusb.Task();
 if (joystick1.available()) {
+  isJoystick=true;
 for (uint8_t i = 0; i < 64; i++) {
 psAxis_prev[i] = psAxis[i];
 psAxis[i] = joystick1.getAxis(i);
 }
 buttons = joystick1.getButtons();}
+else
+{
+  isJoystick=false;
+}
 //int i; 
 // grab blocks!
 //pixy.ccc.getBlocks();
@@ -666,20 +674,20 @@ if(buttons==2)
   // {servomotion(0,150);
   sp1 = 3550;
   feed_pid_timer.begin(calcPID, 75000);
-   if (err1 == 0){
-    feed_pid_timer.end();
-  }
+  //  if (err1 == 0){
+  //   feed_pid_timer.end();
+  // }
 
   Serial.println("Cross");
-  delay(100);
+  delay(2000);
 
   // ---------------SHOOTING-----------------------
 
-  sp1 = 0;
+  sp1 = 200;
   feed_pid_timer.begin(calcPID, 75000);
-  if (err1 == 0){
-    feed_pid_timer.end();
-  }
+  // if (err1 == 0){
+  //   feed_pid_timer.end();
+  // }
 }
 else if(buttons == 8)
 {
@@ -695,10 +703,10 @@ pid_timer.begin(pid, 100000000);  // Stop the interrupt timer
 Serial.println("DRIBBLING");
 // rollers();
 // dcv_control();
-servomotion(0,145);
+servomotion(0,110);
 delay(1000);
 dcv_control();
-delay(50);
+delay(300);
 rollers();
 delay(600);
 pixy.setLamp(1,1);
@@ -712,26 +720,27 @@ Serial.println("Detected");
 pixy.setLamp(0,0);
 break;}
 
-if (joystick1.getButtons()){
-  break;
-}
+// if (joystick1.getButtons()){
+//   break;
+// }
 }
 //function();
 delay(200);
-servomotion(145,0);
+servomotion(110,0);
 stoprollers();
-delay(500);
+delay(2000);
 
 // Serial.println("Restarting PID Timer");
 pid_timer.begin(pid, 75000);
 // Serial.println("PID Timer Restarted");
 
-// feeding 
-sp1 = 3000;
-feed_pid_timer.begin(calcPID, 75000);
-if (err1 == 0){
-  feed_pid_timer.end();
-}
+// // feeding 
+// Serial.println("FEEDING");
+// sp1 = 3500;
+// feed_pid_timer.begin(calcPID, 75000);
+// // if (err1 == 0){
+// //   feed_pid_timer.end();
+// // }
 
 }
 

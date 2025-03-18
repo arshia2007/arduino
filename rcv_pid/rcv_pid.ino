@@ -1,15 +1,15 @@
 #include <Encoder.h>
 #include <IntervalTimer.h> 
 
-// Encoder myEnc[2] = {Encoder(9,10), Encoder(11,12)};
+Encoder myEnc[2] = {Encoder(7,6), Encoder(10,9)};   //right - left
 
-Encoder myEnc(9, 10);
+// Encoder myEnc(9, 10);
 
 // Motor driver pins
-int PWM = 22;
-int DIR = 20;
-// int PWM[2] = {22, 21};
-// int DIR[2] = {20, 23};
+// int PWM = 22;
+// int DIR = 20;
+int PWM[2] = {19, 18};
+int DIR[2] = {17, 16};
 // #define motor2PWM 6
 // #define motor2DIR 7
 
@@ -19,9 +19,9 @@ float ki = 0.0;   //ki=0.5
 float kd = 0.0;   //kd=0.3
 
 // long currentCounts[2] = {0,0};
-long currentCounts = 0;
+long currentCounts[2] = {0,0};
 
-volatile float sp;
+volatile float sp[2] = {0,0};
 float pid[2] = {0.0, 0.0};
 float err[2] = {0.0, 0.0};
 float prev_err[2] = {0.0, 0.0};
@@ -40,7 +40,7 @@ void setup() {
   Serial.begin(9600);
 
   pinMode(13, OUTPUT);
-  digitalWrite(13, HIGH);
+  // digitalWrite(13, HIGH);
 
   // Motor control pins setup
   for (int i = 0; i < 2; i++) {
@@ -58,24 +58,25 @@ void setup() {
   analogWriteResolution(14);
   analogWriteFrequency(0, 9000);
 
-  timer.begin(calcPID, 75000);
+  timer.begin(calcPID, 10000);
 
 }
 
 void input() {
-  if (Serial.available() > 0) {       // 0350.50.30
+  if (Serial.available() > 0) {       // 0500.20.30
   
   String input = Serial.readString();
 
   kp = input.substring(0,3).toFloat();
   ki = input.substring(3,6).toFloat();
   kd = input.substring(6,9).toFloat();
-  sp = input.substring(9).toInt() / 360.0 * 535;
+  sp[0] = input.substring(9).toInt() / 360.0 * 535;
   }
-Serial.printf(" kp:%f", kp);
-Serial.printf(" ki:%f", ki);
-Serial.printf(" kd:%f", kd);
-Serial.printf(" sp:%f\n", sp);
+  sp[1] = -1*sp[0];
+// Serial.printf(" kp:%f", kp);
+// Serial.printf(" ki:%f", ki);
+// Serial.printf(" kd:%f", kd);
+// Serial.printf(" sp:%f\n", sp);
 }
 
 void calcPID() {
@@ -83,18 +84,18 @@ void calcPID() {
 
   input();
 
-  // for (int i = 0; i < 2; i++){
-  //   currentCounts[i] = myEnc[i].read();
-  // } 
+  for (int i = 0; i < 2; i++){
+    currentCounts[i] = myEnc[i].read();
+  } 
   // Serial.printf("m1:%d", currentCounts[0]);
   // Serial.printf("m2:%d", currentCounts[1]);
-  currentCounts1 = myEnc1.read();
+  // currentCounts1 = myEnc1.read();
   // long currentCounts2 = myEnc2.read();
 
   for (int i=0; i<2; i++){
-    err[i] = sp - currentCounts[i];
-    integ[i] = integ[i] + (err[i]*0.075);   
-    der[i] = (err[i]-prev_err[i])/0.075;
+    err[i] = sp[i] - currentCounts[i];
+    integ[i] = integ[i] + (err[i]*0.010);   
+    der[i] = (err[i]-prev_err[i])/0.010;
 
     pid[i] = (kp*err[i]) + (ki*integ[i]) + (kd*der[i]);
     prev_err[i] = err[i];
@@ -112,14 +113,14 @@ void calcPID() {
 
 
   runMotor(PWM[0], DIR[0], pid[0]);
-  runMotor(PWM[1], DIR[1], -pid[1]);
+  runMotor(PWM[1], DIR[1], pid[1]);
   // digitalWrite(motor1DIR, (pid1 <= 0 ? LOW : HIGH));
   // analogWrite(motor1PWM, abs(pid1));
 
-  // Serial.print("sp:");
-  // Serial.print(sp);
-  // Serial.print("ticks:");
-  // Serial.println(myEnc1.read());
+Serial.printf(" sp1:%f", sp[0]);
+Serial.printf(" ticks1:%d", myEnc[0].read());
+Serial.printf(" sp2:%f", sp[1]);
+Serial.printf(" ticks2:%d\n", myEnc[1].read());
 
 }
 
@@ -131,7 +132,7 @@ void runMotor(int motorPWM, int motorDir, float speed) {
     digitalWrite(motorDir, HIGH);
   } else if (speed < 0) {
     digitalWrite(motorDir, LOW);
-    speed = -speed;
+   // speed = -speed;
   } else {
     pwm = 0;
   }

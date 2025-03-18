@@ -1,12 +1,12 @@
 #include <Encoder.h>
 #include <IntervalTimer.h> 
 
-Encoder myEnc1(40,41);
+Encoder myEnc1(11,12);
 // Encoder myEnc2(9, 8);
 
 // Motor driver pins
-int motor1PWM = 19;
-int motor1DIR = 17;
+int motor1PWM = 22;
+int motor1DIR = 20;
 // #define motor2PWM 6
 // #define motor2DIR 7
 

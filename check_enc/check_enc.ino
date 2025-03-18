@@ -3,25 +3,21 @@
 IntervalTimer rpm_timer;
 IntervalTimer ps4_timer;
 //const int ledPin = LED_BUILTIN;  // the pin with a LED
-//  Encoder myEnc(6,7);//roller
-//  int m4_pwm = 29;
-//  int m4_dir = 27;
-// // //
-// Encoder myEnc(6, 7);//feeding
-// int m4_pwm = 28;
-// int m4_dir = 26;
+ Encoder myEnc(11,12);
+ int m4_pwm = 18;
+ int m4_dir = 16;
+// //
+// Encoder myEnc(30, 31);
+// int m4_pwm = 5;
+// int m4_dir = 4;
 
-// Encoder myEnc(14,15); //drive m1
-// int m4_pwm = 22;
-// int m4_dir = 20;
+// Encoder myEnc(12, 11);
+// int m4_pwm = 7;
+// int m4_dir = 6;
 
-// Encoder myEnc(38,39); //drive m3
-// int m4_pwm = 18;
-// int m4_dir = 16;
-
-Encoder myEnc(40, 41);//drive m2
-int m4_pwm = 19;
-int m4_dir = 17;
+// Encoder myEnc(31, 30);
+// int m4_pwm = 5;
+// int m4_dir = 4;
 volatile float rpm=0;
 
 int res=pow(2,14)-1;
@@ -42,8 +38,8 @@ void drive(int pwm_val, int pwmPin, int dirPin)
 
 USBHost myusb;
 JoystickController joystick1(myusb);
-BluetoothController bluet(myusb, true, "0000");
-// BluetoothController bluet(myusb);   // version assumes it already was paireduint32_t buttons_prev = 0;
+// BluetoothController bluet(myusb, true, "0000");
+BluetoothController bluet(myusb);   // version assumes it already was paireduint32_t buttons_prev = 0;
 
 uint32_t buttons_prev = 0;
 uint32_t buttons;

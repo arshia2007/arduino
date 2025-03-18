@@ -101,11 +101,6 @@ void calculatePID() {
   // Serial.println(leftX);
 
 
-  // Calculate wheel speeds based on inverse kinematics
-  // int V1 = ((x) * (-0.67) + (y) * 0 + (leftX) * (-0.33));        
-  // int V2 = ((x) * (0.33) + (y) * (-0.565) + (leftX) * (-0.33)); 
-  // int V3 = ((x) * (0.33) + (y) * (0.59) + (leftX) * (-0.33)); 
-
   sp[0] = ((x) * (-0.67) + (y) * 0 + (leftX) * (-0.33));        
   sp[1] = ((x) * (0.33) + (y) * (-0.57) + (leftX) * (-0.33)); 
   sp[2] = ((x) * (0.33) + (y) * (0.57) + (leftX) * (-0.33)); 
