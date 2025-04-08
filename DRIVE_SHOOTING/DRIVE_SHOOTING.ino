@@ -8,29 +8,26 @@ Pixy2I2C pixy;
 volatile int pwm_18 = 0;
 bool isJoystick = 0;
 VescUart UART;
-// constrain(speed_feed,-16319*0.9,16319*0.9);
 
 IntervalTimer pid_timer;
 
 IntervalTimer feed_pid_timer;
 
 // IntervalTimer serial_input_timer;
-int pwm_pin[3] = { 22, 19, 18 };
-int dir_pin[3] = { 20, 17, 16 };
 
 
-Encoder m[3] = { Encoder(14, 15), Encoder(40, 41), Encoder(38, 39) };
+
 
 
 IntervalTimer pos_pid_timer;
 IntervalTimer feeder_pos_pid_timer;
-Encoder encL(10, 9);
-Encoder encR(7, 6);
+Encoder encL(9, 10);      // rcv
+Encoder encR(6, 7);
 
-Encoder encFeed(11, 12); 
+Encoder encFeed(7,6);
 
-int feeder_pwm=22;      //22
-int feeder_dir=20;      //20
+int feeder_pwm=18;
+int feeder_dir=16;
 
 int feeder_cpr=538;
 float ap_count_feeder=0;
@@ -77,19 +74,8 @@ int ball_pull = 2;
 int dribbling_arm_out=32;
 int dribbling_arm_in=30;
 
-//Servo servo_left;
-//Servo servo_right;
-// Servo sr;
-// Servo sl;
-Servo srvDribR;
-Servo srvDribL;
-unsigned long previousMillis = 0;
-int startPos, endPos, steps = 100;
-unsigned long duration;
-int currentStep = 0;
-bool isMoving = false;
-
-
+Servo servo_left;
+Servo servo_right;
 Servo servo_stopper;
 //dribbling
 
@@ -129,27 +115,26 @@ int psAxis[64];
 int psAxis_prev[64];
 bool first_joystick_message = true;
 //..PS4
+Encoder m[3] = { Encoder(14, 15), Encoder(40, 41), Encoder(38, 39) };
+int pwm_pin[3] = { 23, 22, 19 };
+int dir_pin[3] = { 21, 20, 17 };
 
-
+int turn_table_motor_pwm=0;
+int turn_table_motor_dir=1;//A:10,B:9
 
 
 void setup() {
 
-  pixy.init();
-  pixy.setLamp(1,1);//to turn on pixy led
+  // pixy.init();
+  // pixy.setLamp(1,1);//to turn on pixy led
 
   Serial.begin(200000);
   Serial7.begin(115200);
-  //servo_left.attach(37);
-  //servo_right.attach(36);
+  servo_left.attach(37);
+  servo_right.attach(36);
 
- // servo_right.write(180-5);
- // servo_left.write(0+5);
-  srvDribR.attach(36);
-  srvDribL.attach(37);
-  srvDribR.write(180-15);
-  srvDribL.write(15);
-
+  servo_right.write(180);
+  servo_left.write(0);
 
   servo_stopper.attach(31);
   servo_stopper.write(0);
@@ -174,16 +159,16 @@ void setup() {
   pinMode(feeder_dir, OUTPUT);
 
 
-  // pid_timer.priority(2);
+  pid_timer.priority(2);
   pos_pid_timer.priority(0);
   feed_pid_timer.priority(1);
 
-  // pid_timer.begin(pid, 75000);
-  pos_pid_timer.begin(pos_pid,10000);
+  pid_timer.begin(pid, 75000);
+  // pos_pid_timer.begin(pos_pid,10000);
   feed_pid_timer.begin(feed_pos_pid,10000);
 
   analogWriteResolution(14);
- pinMode(roller1_pin, OUTPUT);
+  pinMode(roller1_pin, OUTPUT);
   pinMode(roller1_spd, OUTPUT);
 
 
@@ -207,6 +192,7 @@ void setup() {
   digitalWrite(piston1, HIGH);
   digitalWrite(piston2, HIGH);
 
+  digitalWrite(turn_table_motor_dir,OUTPUT);
 
   // for (int angle = 30; angle <= 45; angle++) {
   //   //if(angle<125)
@@ -230,6 +216,7 @@ void setup() {
 
   pinMode(dribbling_arm_out,OUTPUT);
   pinMode(dribbling_arm_in,OUTPUT);
+
   digitalWrite(dribbling_arm_out, HIGH);
   digitalWrite(dribbling_arm_in, LOW);
   delay(1000);
@@ -279,9 +266,6 @@ last_errR=errR;
 speed_mR=kP*errR+kI*integR+kD*derR;
 
 
-constrain(speed_mR,-14361,14361);
-constrain(speed_mL,-14361,14361);
-
 
 
 // Serial.printf("speed: %f   ",speed_m);
@@ -324,7 +308,7 @@ integ_feed=integ_feed+(err_feed-lastError_feed)*0.01;
 lastError_feed=err_feed;
 
 speed_feed=kP*err_feed+kI*integ_feed+kD*der_feed;
-constrain(speed_feed,-14361,14361);
+constrain(speed_feed,-16319,16319);
 // Serial.printf("speed: %f   ",speed_m);
 // Serial.printf("Kp: %f.   Ki: %f.    Kd: %f   ",kp,ki,kd);
 // Serial.print("Sp_feed:");
@@ -408,13 +392,26 @@ void pid() {
     else
       w = 0;
 
+    
+    if (psAxis[2] > 135)
+      w = map(psAxis[2], 135, 255, 0, 255);
+
+    else if (psAxis[1] < 125)
+      w = map(psAxis[2], 125, 0, 0, -255);
+    else
+      w = 0;
+
     int y = psAxisY;
     int x = psAxisX;
-
+    // int w =
     Serial.print(x);
     Serial.print("   ok ");
     Serial.print(y);
     Serial.println();
+
+    digitalWrite(turn_table_motor_dir, (w*32 <= 0 ? LOW : HIGH));
+    analogWrite(turn_table_motor_pwm, abs(w*32));
+
     rpm_sp[0] = map(x + w, -175, 175, max_rpm, -max_rpm);
     rpm_sp[1] = map(-0.5 * x - 0.866 * y + w, -175, 175, max_rpm, -max_rpm);
     rpm_sp[2] = map(-0.5 * x + 0.866 * y + w, -175, 175, max_rpm, -max_rpm);
@@ -453,7 +450,7 @@ void pid() {
 
 
 //DRIBBLING
-/*void servomotion(int start_angle, int end_angle) {
+void servomotion(int start_angle, int end_angle) {
   if (start_angle < end_angle) {
     for (int angle = start_angle; angle <= end_angle; angle++) {
       // if(angle<125)
@@ -473,98 +470,10 @@ void pid() {
       delay(15);
     }
   }
-}*/
-// #include <cmath>
-
-
-// double easeInOutExpo(double x) {
-//     // if (x == 0) return 0;
-//     // if (x == 1) return 1;
-//     return (x < 0.5) ? std::pow(2, 20 * x - 10) / 2  : (2 - std::pow(2, -20 * x + 10)) / 2;
-// }
-
-// float easeInOutCirc(float x) {
-// return x < 0.5 ? (1 - sqrt(1 - pow(2 * x, 2))) / 2 : (sqrt(1 - pow(-2 * x + 2, 2)) + 1) / 2;
-// }
-float mapFloat(float x, float in_min, float in_max, float out_min, float out_max) {
-    return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
-
-void servoEase(int Spos, int Epos, int time) {
-  startPos = Spos;
-  endPos = Epos;
-  duration = time;
-  // previousMillis = millis();  // Reset time
-  // currentStep = 0;
-  // isMoving = true;  // Start motion
- int lastTime=millis()
- float x=0
- float y=0;
-  while(millis()-lastTime>=duration){
-    // unsigned long currentMillis = millis();
-    // unsigned long stepDuration = duration / steps;
-
-    // if (currentMillis - previousMillis >= stepDuration) {
-    //   previousMillis = currentMillis;
-
-      // float progress = (float)currentStep / steps;
-      x=mapFloat(millis()-lastTime,0,duration,0,1);
-       y = x < 0.5 ? (1 - sqrt(1 - pow(2 * x, 2))) / 2 : (sqrt(1 - pow(-2 * x + 2, 2)) + 1) / 2;
-
-      // int servoPosL = startPos + round((endPos - startPos) * easedProgress);
-      // int servoPosR = 180 - (startPos + round((endPos - startPos) * easedProgress));
-
-      int servoPosL =int( mapFloat(y, 0, 1, startPos, endPos));
-      int servoPosR = 180 - servoPosL;
-
-      srvDribR.write(servoPosR);
-      srvDribL.write(servoPosL);
-
-      // currentStep++;
-      // if (currentStep >= steps) {
-      //   isMoving = false;
-      //   currentStep = 0;
-      }
-    }
-  }
-}
-
-// void updateServo() {
-//   if (!isMoving) return;
-
-//   unsigned long currentMillis = millis();
-//   unsigned long stepDuration = duration / steps;
-
-//   if (currentMillis - previousMillis >= stepDuration) {
-//     previousMillis = currentMillis;
-
-//     float progress = (float)currentStep / steps;
-//     if (progress == 0) return 0;
-//     if (progress == 1) return 1;
-//     float easedProgress = progress < 0.5 ? (1 - sqrt(1 - pow(2 * progress, 2))) / 2 : (sqrt(1 - pow(-2 * progress + 2, 2)) + 1) / 2;
-//     float easedProgress = easeInOutCirc(progress);
-
-//     int servoPosL = startPos + round((endPos - startPos) * easedProgress);
-//     int servoPosR = 180 - (startPos + round((endPos - startPos) * easedProgress));
-
-//     sr.write(servoPosR);
-//     sl.write(servoPosL);
-
-//     Serial.print("sr: "); Serial.print(servoPosL);
-//     Serial.print(" | sl: "); Serial.println(servoPosR);
-
-//     currentStep++;
-//     if (currentStep >= steps) {
-//       isMoving = false;
-//       currentStep = 0;
-//     }
-//   }
-// }
-
-
 
 void rollers() {
-  digitalWrite(roller1_pin, LOW);
+  digitalWrite(roller1_pin, HIGH);
   analogWrite(roller1_spd, 255 * 64);
 
   //  digitalWrite(roller2_pin,HIGH);
@@ -623,10 +532,10 @@ int flag_rec=0;
 int flag_feed=0;
 int lastTime=0;
 void loop() {
-  // Serial.println("ok");
   // UART.setRPM(1500);
-
-  //updateServo();
+  // if (Serial.available() > 0){
+  //   int rpm = Serial.read();
+  // }
 
   myusb.Task();
   if (joystick1.available()) {
@@ -636,16 +545,16 @@ void loop() {
       psAxis[i] = joystick1.getAxis(i);
     }
     buttons = joystick1.getButtons();
-    // Serial.println(buttons);
+    Serial.println(buttons);
   } else {
     isJoystick = false;
   }
   // Serial.println(isJoystick);
   if (buttons == 2 && flag_feed==0 && flag_timer[2]==1) {
     // {servomotion(0,150);
-    // UART.setRPM(1500);
+    UART.setRPM(1500);
     Serial.println("Cross pressed");
-    sp_angle_feeder=-3550;
+    sp_angle_feeder=-3450;
     flag_feed=1;
     flag_timer[2]=0;
     }
@@ -654,12 +563,12 @@ void loop() {
     sp_angle_feeder=0;
     flag_feed=0;
     flag_timer[2]=0;
-    // UART.setRPM(0);
+    UART.setRPM(0);
     }
    else if (buttons == 8 && flag_rec==0 && flag_timer[8]==1) {
 
-      sp_angleR=-4650;
-      sp_angleL=4650;
+      sp_angleR=4650;
+      sp_angleL=-4650;
       flag_rec=1;
       servo_stopper.write(0);
       Serial.println("Triangle pressed0");
@@ -681,8 +590,8 @@ void loop() {
     servo_stopper.write(90); 
     feed_pid_timer.begin(feed_pos_pid,100000000);
     pos_pid_timer.begin(pos_pid,100000000);
-    // pid_timer.begin(pid, 100000000);  // Stop the interrupt timer
-    //Serial.println("PID Timer Stopped");
+    pid_timer.begin(pid, 100000000);  // Stop the interrupt timer
+    Serial.println("PID Timer Stopped");
     Serial.println("DRIBBLING");
     // rollers();
     // dcv_control();
@@ -692,33 +601,31 @@ void loop() {
     digitalWrite(dribbling_arm_out,HIGH);
     digitalWrite(dribbling_arm_in,HIGH);
     
-    servoEase(15,90,1000);
-    //updateServo();
+    servomotion(0,90);
     delay(1000);
     dcv_control();
     delay(50);
     rollers();
     delay(600);
     pixy.setLamp(1, 1);
-    while (true) {
-      pixy.ccc.getBlocks();
+    // while (true) {
+    //   pixy.ccc.getBlocks();
 
-      if (pixy.ccc.numBlocks) {
-        function();
-        Serial.println("Detected");
-        pixy.setLamp(0, 0);
-        break;
-      }
+    //   if (pixy.ccc.numBlocks) {
+    //     function();
+    //     Serial.println("Detected");
+    //     pixy.setLamp(0, 0);
+    //     break;
+    //   }
 
-      if (joystick1.getButtons()){
-        Serial.println("Overridden");
-        break;
-      }
-    }
+    //   if (joystick1.getButtons()){
+    //     Serial.println("Overridden");
+    //     break;
+    //   }
+    // }
     // function();
     delay(200);
-    servoEase(90,15,1000);
-    //updateServo();
+    servomotion(90,0);
     stoprollers();
     delay(500);
     servo_stopper.write(0); 
@@ -727,13 +634,13 @@ void loop() {
     delay(500);
     digitalWrite(dribbling_arm_out,HIGH);
     digitalWrite(dribbling_arm_in,HIGH);
-    // Serial.println("Restarting PID Timer");
-    // pid_timer.begin(pid, 75000);
+    Serial.println("Restarting PID Timer");
+    pid_timer.begin(pid, 75000);
     // Serial.println("PID Timer Restarted");
     feed_pid_timer.begin(feed_pos_pid,10000);
     pos_pid_timer.begin(pos_pid,10000);
     // feeding
-    // sp_angle_feeder=-3000;
+    sp_angle_feeder=-3000;
     // feed_pid_timer.begin(calcPID, 10000);
     // if (err1 == 0) {
     //   feed_pid_timer.end();

@@ -6,10 +6,12 @@
 */
 
 #include <VescUart.h>
+#include <Encoder.h>
 
 /** Initiate VescUart class */
 VescUart UART;
 
+IntervalTimer feed_pid_timer;
 float current = 0; /** The current in amps */
 
 Encoder encFeed(7,6);
@@ -25,24 +27,30 @@ float sp_count_feeder=0;
 
 float kP=150,kI=5,kD=1;
 
+float err_feed=0,der_feed=0,integ_feed=0,lastError_feed=0;
+float speed_feed=0;
+
 
 void setup() {
   Serial.begin(2000000);
   /** Setup UART port (Serial1 on Atmega32u4) */
-  Serial8.begin(115200);
+  Serial1.begin(115200);
   
   while (!Serial8) {;}
   analogWrite(13,255);
   /** Define which ports to use as UART */
-  UART.setSerialPort(&Serial8);
+  UART.setSerialPort(&Serial1);
 
-  feed_pid_timer.begin(feed_pos_pid,10000);
+  // feed_pid_timer.begin(feed_pos_pid,10000);
 
   pinMode(feeder_pwm,OUTPUT);
   pinMode(feeder_dir,OUTPUT);
+
+  analogWriteResolution(14);
+  analogWriteFrequency(0, 9000);
 }
-  float nrpm=0;
-  float orpm = 0;
+  int nrpm=0;
+  int orpm = 0;
 
 void setPosition(int pwm,int dir ,int speed)
 {
@@ -62,7 +70,7 @@ integ_feed=integ_feed+(err_feed-lastError_feed)*0.01;
 lastError_feed=err_feed;
 
 speed_feed=kP*err_feed+kI*integ_feed+kD*der_feed;
-constrain(speed_feed,-14361,1436);
+constrain(speed_feed,-14361,14361);
 // Serial.printf("speed: %f   ",speed_m);
 // Serial.printf("Kp: %f.   Ki: %f.    Kd: %f   ",kp,ki,kd);
 // Serial.print("Sp_feed:");
@@ -88,7 +96,7 @@ void loop() {
                  
                }
     if(nrpm != 0){
-      sp_angle_feeder = -3550;
+      // sp_angle_feeder = -3300;
       while(orpm < nrpm){
         orpm=orpm+((nrpm-orpm)/700)+((nrpm-orpm)%700);
         UART.setRPM(orpm);
@@ -105,9 +113,23 @@ void loop() {
       } 
     }else{
       orpm = 0;
-      sp_angle_feeder = 0;
+      // sp_angle_feeder = 0;
 
     }
+    UART.setRPM(orpm);
+    if ( UART.getVescValues() ) {
+      if(UART.data.avgInputCurrent > 15){
+        Serial.println("Values: ");
+        // Serial.println(UART.data.rpm/7);
+        // Serial.println((UART.data.inpVoltage)/10);
+        // Serial.println(UART.data.ampHours);
+        // Serial.println(UART.data.pidPos);
+        // Serial.println(UART.data.avgMotorCurrent);
+        Serial.println(UART.data.avgInputCurrent);
+        // Serial.println(UART.data.tachometer);
+    }
+  }
+
 //                Serial.print()
 // Serial.print(current);
   //UART.setCurrent(current);

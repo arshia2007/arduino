@@ -3,21 +3,22 @@
 IntervalTimer rpm_timer;
 IntervalTimer ps4_timer;
 //const int ledPin = LED_BUILTIN;  // the pin with a LED
- Encoder myEnc(11,12);
- int m4_pwm = 18;
- int m4_dir = 16;
-// //
-// Encoder myEnc(30, 31);
+ Encoder myEnc(36,33); // m1
+ int m4_pwm = 4;
+ int m4_dir = 6;
+// 
+// Encoder myEnc(38,37);  // m2
 // int m4_pwm = 5;
-// int m4_dir = 4;
+// int m4_dir = 7;
 
-// Encoder myEnc(12, 11);
-// int m4_pwm = 7;
-// int m4_dir = 6;
+// Encoder myEnc(40,39);   // m3
+// int m4_pwm = 3;
+// int m4_dir = 2;
 
-// Encoder myEnc(31, 30);
-// int m4_pwm = 5;
-// int m4_dir = 4;
+// Encoder myEnc(36,37);  // turn table 
+// int m4_pwm = 18;
+// int m4_dir = 17;
+
 volatile float rpm=0;
 
 int res=pow(2,14)-1;
@@ -88,7 +89,7 @@ volatile long newPosition;
 void calc_rpm() {
   newPosition=myEnc.read();
   count=abs(newPosition-oldPosition);
-  rpm=count/1300.0*600*4/3;
+  rpm=count/700.0*600*4/3;
   rpm*=newPosition<oldPosition?-1:1;
   Serial.printf("RPM: %f   ",rpm);
   count=0;

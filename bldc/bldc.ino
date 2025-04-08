@@ -16,6 +16,8 @@ void setup() {
   Serial.begin(2000000);
   /** Setup UART port (Serial1 on Atmega32u4) */
   Serial1.begin(115200);
+  pinMode(13, OUTPUT);
+  digitalWrite(13, HIGH);
   
   while (!Serial1) {;}
 
@@ -39,6 +41,7 @@ void loop() {
 //                Serial.print()
 // Serial.print(current);
   //UART.setCurrent(current);
+
     UART.setRPM(rpm);
   if ( UART.getVescValues() ) {
     Serial.println("Values: ");

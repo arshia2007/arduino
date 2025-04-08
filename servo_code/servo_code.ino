@@ -11,10 +11,10 @@ void setup()
   pinMode(13, OUTPUT);
   digitalWrite(13, HIGH);
   Serial.begin(9600);
-  right.attach(36);
-  left.attach(37);
-  right.write(180);
-  left.write(0);
+  right.attach(1);
+  left.attach(2);
+  right.write(0);
+  left.write(180);
 
 }
 
@@ -37,13 +37,13 @@ void loop()
       Serial.println("Angle: ");
       if (angle>last2){
         for (i=last2; i <= angle; i++){
-          right.write(180-i);
-          left.write(i);
+          right.write(i);
+          left.write(180-i);
         }
       }else {
         for (i = last2; i>=angle; i--){
-          right.write(180-i);
-          left.write(i);
+          right.write(i);
+          left.write(180-i);
         }
       }
       last1 = 180-i;

@@ -79,10 +79,8 @@ int dribbling_arm_in=30;
 
 //Servo servo_left;
 //Servo servo_right;
-// Servo sr;
-// Servo sl;
-Servo srvDribR;
-Servo srvDribL;
+Servo sr;
+Servo sl;
 unsigned long previousMillis = 0;
 int startPos, endPos, steps = 100;
 unsigned long duration;
@@ -121,7 +119,7 @@ int max_rpm = 500;
 //PS4
 USBHost myusb;
 JoystickController joystick1(myusb);
-// BluetoothController bluet(myusb, true, "0000");   // Version does pairing to device
+BluetoothController bluet(myusb, true, "0000");   // Version does pairing to device
 BluetoothController bluet(myusb);  // version assumes it already was paireduint32_t buttons_prev = 0;
 uint32_t buttons;
 
@@ -145,10 +143,10 @@ void setup() {
 
  // servo_right.write(180-5);
  // servo_left.write(0+5);
-  srvDribR.attach(36);
-  srvDribL.attach(37);
-  srvDribR.write(180-15);
-  srvDribL.write(15);
+  sr.attach(36);
+  sl.attach(37);
+  sr.write(180-15);
+  sl.write(15);
 
 
   servo_stopper.attach(31);
@@ -474,92 +472,53 @@ void pid() {
     }
   }
 }*/
-// #include <cmath>
 
-
-// double easeInOutExpo(double x) {
-//     // if (x == 0) return 0;
-//     // if (x == 1) return 1;
-//     return (x < 0.5) ? std::pow(2, 20 * x - 10) / 2  : (2 - std::pow(2, -20 * x + 10)) / 2;
-// }
-
-// float easeInOutCirc(float x) {
-// return x < 0.5 ? (1 - sqrt(1 - pow(2 * x, 2))) / 2 : (sqrt(1 - pow(-2 * x + 2, 2)) + 1) / 2;
-// }
-float mapFloat(float x, float in_min, float in_max, float out_min, float out_max) {
-    return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+float easeInOutCirc(float x) {
+return x < 0.5 ? (1 - sqrt(1 - pow(2 * x, 2))) / 2 : (sqrt(1 - pow(-2 * x + 2, 2)) + 1) / 2;
 }
 
-void servoEase(int Spos, int Epos, int time) {
+void servomotion(int Spos, int Epos, int time) {
   startPos = Spos;
   endPos = Epos;
   duration = time;
-  // previousMillis = millis();  // Reset time
-  // currentStep = 0;
-  // isMoving = true;  // Start motion
- int lastTime=millis()
- float x=0
- float y=0;
-  while(millis()-lastTime>=duration){
-    // unsigned long currentMillis = millis();
-    // unsigned long stepDuration = duration / steps;
+  previousMillis = millis();  // Reset time
+  currentStep = 0;
+  isMoving = true;  // Start motion
 
-    // if (currentMillis - previousMillis >= stepDuration) {
-    //   previousMillis = currentMillis;
-
-      // float progress = (float)currentStep / steps;
-      x=mapFloat(millis()-lastTime,0,duration,0,1);
-       y = x < 0.5 ? (1 - sqrt(1 - pow(2 * x, 2))) / 2 : (sqrt(1 - pow(-2 * x + 2, 2)) + 1) / 2;
-
-      // int servoPosL = startPos + round((endPos - startPos) * easedProgress);
-      // int servoPosR = 180 - (startPos + round((endPos - startPos) * easedProgress));
-
-      int servoPosL =int( mapFloat(y, 0, 1, startPos, endPos));
-      int servoPosR = 180 - servoPosL;
-
-      srvDribR.write(servoPosR);
-      srvDribL.write(servoPosL);
-
-      // currentStep++;
-      // if (currentStep >= steps) {
-      //   isMoving = false;
-      //   currentStep = 0;
-      }
-    }
+  while(isMoving){
+    updateServo();
   }
 }
 
-// void updateServo() {
-//   if (!isMoving) return;
+void updateServo() {
+  if (!isMoving) return;
 
-//   unsigned long currentMillis = millis();
-//   unsigned long stepDuration = duration / steps;
+  unsigned long currentMillis = millis();
+  unsigned long stepDuration = duration / steps;
 
-//   if (currentMillis - previousMillis >= stepDuration) {
-//     previousMillis = currentMillis;
+  if (currentMillis - previousMillis >= stepDuration) {
+    previousMillis = currentMillis;
 
-//     float progress = (float)currentStep / steps;
-//     if (progress == 0) return 0;
-//     if (progress == 1) return 1;
-//     float easedProgress = progress < 0.5 ? (1 - sqrt(1 - pow(2 * progress, 2))) / 2 : (sqrt(1 - pow(-2 * progress + 2, 2)) + 1) / 2;
-//     float easedProgress = easeInOutCirc(progress);
+    float progress = (float)currentStep / steps;
+    float easedProgress = easeInOutCirc(progress);
 
-//     int servoPosL = startPos + round((endPos - startPos) * easedProgress);
-//     int servoPosR = 180 - (startPos + round((endPos - startPos) * easedProgress));
+    int servoPosL = startPos + round((endPos - startPos) * easedProgress);
+    int servoPosR = 180 - (startPos + round((endPos - startPos) * easedProgress));
 
-//     sr.write(servoPosR);
-//     sl.write(servoPosL);
+    sr.write(servoPosR);
 
-//     Serial.print("sr: "); Serial.print(servoPosL);
-//     Serial.print(" | sl: "); Serial.println(servoPosR);
+    sl.write(servoPosL);
 
-//     currentStep++;
-//     if (currentStep >= steps) {
-//       isMoving = false;
-//       currentStep = 0;
-//     }
-//   }
-// }
+    Serial.print("sr: "); Serial.print(servoPosL);
+    Serial.print(" | sl: "); Serial.println(servoPosR);
+
+    currentStep++;
+    if (currentStep >= steps) {
+      isMoving = false;
+      currentStep = 0;
+    }
+  }
+}
 
 
 
@@ -692,7 +651,7 @@ void loop() {
     digitalWrite(dribbling_arm_out,HIGH);
     digitalWrite(dribbling_arm_in,HIGH);
     
-    servoEase(15,90,1000);
+    servomotion(15,90,1000);
     //updateServo();
     delay(1000);
     dcv_control();
@@ -717,7 +676,7 @@ void loop() {
     }
     // function();
     delay(200);
-    servoEase(90,15,1000);
+    servomotion(90,15,1000);
     //updateServo();
     stoprollers();
     delay(500);

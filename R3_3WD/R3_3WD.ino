@@ -2,7 +2,7 @@
 #include <IntervalTimer.h> 
 #include "USBHost_t36.h"
 
-Encoder myEnc[3] = { Encoder(36,33), Encoder(38,37), Encoder(40,39)};
+Encoder myEnc[3] = { Encoder(17, 16), Encoder(14, 15), Encoder(23, 22)};
 
 //PS4 connection 
 USBHost myusb;   // initializes and manages the USB host port, enabling Teensy to detect and commuincate with USB bluetooth dongle
@@ -13,8 +13,8 @@ BluetoothController bluet(myusb);   // Version does pairing to device
 
 //coordinates of joystick (x,y -> right joystick; leftX -> left joystick)
 int x, y, leftX;  
-int PWM[3] = {4,5,3};
-int DIR[3] = {6,7,2};
+int PWM[3] = {3,5,9};
+int DIR[3] = {2,4,8};
 
 long currentCounts[3] = {0,0,0};
 volatile long lastCount[3] = {0,0,0};      
@@ -22,9 +22,9 @@ volatile double rpm[3] = {0,0,0};          // Stores the calculated RPM
 long positionChange[3] = {0,0,0};
 
 //pid constants
-float kp[3] = {9.0, 9.0, 9.0};
-float ki[3] = {165.0, 165.0, 165.0};
-float kd[3] = {0.5, 0.5, 0.5}; 
+float kp[3] = {0.0, 0.0, 0.0};
+float ki[3] = {0.0, 0.0, 0.0};
+float kd[3] = {0.0, 0.0, 0.0}; 
 
 volatile float sp[3]={0,0,0};
 float pid[3] = {0.0, 0.0, 0.0};
@@ -33,7 +33,7 @@ float prev_err[3] = {0.0, 0.0, 0.0};
 float integ[3] = {0.0, 0.0, 0.0};
 float der[3] = {0.0, 0.0, 0.0}; 
 
-float max_rpm = 300;
+float max_rpm = 500;
 
 IntervalTimer timer; // Timer object for periodic execution
 
@@ -52,7 +52,7 @@ void input() {
 void calculatePID() {
   // unsigned long startTime = micros();
 
-  // input();
+  input();
 
   myusb.Task();   // Handle USB host tasks
 
@@ -158,7 +158,7 @@ void calculatePID() {
     pid[i] = (kp[i]*err[i]) + (ki[i]*integ[i]) + (kd[i]*der[i]);
     prev_err[i] = err[i];
 
-    pid[i] = constrain(pid[i], -16383, 16383);
+    pid[i] = constrain(pid[i], -8191, 8191);
 
   //  Serial.printf(" V1:%d",V1);
   //   Serial.printf(" V2:%d",V2);
@@ -188,7 +188,7 @@ void calculatePID() {
   runMotor(PWM[0], DIR[0], pid[0]);
   runMotor(PWM[1], DIR[1], pid[1]);
   runMotor(PWM[2], DIR[2], pid[2]);
-  
+
   // delay(200);  // Small delay for stability
 
   // unsigned long currentTime = micros();
@@ -227,8 +227,8 @@ void setup() {
     digitalWrite(DIR[i], LOW);
 }
 
-  analogWriteResolution(14);
-  analogWriteFrequency(0, 9000);
+  analogWriteResolution(13);
+  analogWriteFrequency(0, 18000);
 
  // myusb.begin();
   // delay(2000);
