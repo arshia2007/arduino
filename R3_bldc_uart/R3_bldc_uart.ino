@@ -1,22 +1,12 @@
-#include "USBHost_t36.h"
-
 /*
   Name:    setCurrent.ino
   Created: 19-08-2018
   Author:  SolidGeek
   Description: This is a very simple example of how to set the current for the motor
 */
-
+int rpm = 0; 
 #include <VescUart.h>
 #include <Encoder.h>
-
-//PS4 connection 
-USBHost myusb;   // initializes and manages the USB host port, enabling Teensy to detect and commuincate with USB bluetooth dongle
-USBHIDParser hid1(myusb);  //works behind the scenes to parse HID data that comes from the PS4 controller, such as joystick movements and button presses.
-JoystickController joystick1(myusb);
-// BluetoothController bluet(myusb, true, "0000"); 
-BluetoothController bluet(myusb);   // Version does pairing to device
-uint32_t buttons;
 
 /** Initiate VescUart class */
 VescUart UART;
@@ -27,8 +17,8 @@ float current = 0; /** The current in amps */
 Encoder encFeed(7,6);
 // int feed = 0;
 
-int feeder_pwm=24;
-int feeder_dir=12;
+int feeder_pwm=18;
+int feeder_dir=16;
 
 int feeder_cpr=538;
 float ap_count_feeder=0;
@@ -44,7 +34,8 @@ float speed_feed=0;
 void setup() {
   Serial.begin(2000000);
   /** Setup UART port (Serial1 on Atmega32u4) */
-  Serial1.begin(115200);
+  Serial1.begin(115200);      //bldc
+  Serial8.begin(115200);
   
   // while (!Serial8) {;}
   analogWrite(13,255);
@@ -58,14 +49,9 @@ void setup() {
 
   analogWriteResolution(14);
   analogWriteFrequency(0, 9000);
-
-  Serial.println("\n\nUSB Host Testing - Joystick Bluetooth");
-  if (CrashReport) Serial.print(CrashReport);
-  myusb.begin();
-  myusb.Task();
 }
-  int nrpm=0;
-  int orpm = 0;
+int nrpm=0;
+int orpm = 0;
 
 void setPosition(int pwm,int dir ,int speed)
 {
@@ -99,10 +85,13 @@ setPosition(feeder_pwm,feeder_dir,int(speed_feed));
 
 
 void loop() {
-  myusb.Task();
-  if (joystick1.available()) {
-    buttons = joystick1.getButtons();
+  if (Serial8.available() >= sizeof(rpm)) {  // Ensure we have a full packet
+    Serial8.readBytes((char*)&rpm, sizeof(rpm));
+    Serial.println(rpm);
+    nrpm = rpm*7;
   }
+  
+  
   /** Call the function setCurrent() to set the motor current */
 
     if (Serial.available() > 0) {
@@ -130,7 +119,7 @@ void loop() {
         Serial.println((orpm/7));
       } 
     }else{
-      orpm = 0;
+      orpm = 0; 
       // sp_angle_feeder = 0;
 
     }
@@ -145,19 +134,8 @@ void loop() {
         // Serial.println(UART.data.avgMotorCurrent);
         Serial.println(UART.data.avgInputCurrent);
         // Serial.println(UART.data.tachometer);
+      }
     }
-  }
-  if (buttons == 8){
-    digitalWrite(feeder_dir, HIGH);
-    analogWrite(feeder_pwm, 255*48);
-
-  }else if (buttons == 2){
-    digitalWrite(feeder_dir, LOW);
-    analogWrite(feeder_pwm, 255*48);
-  }else{
-    digitalWrite(feeder_dir, HIGH);
-    analogWrite(feeder_pwm, 0);
-  }
 
 //                Serial.print()
 // Serial.print(current);

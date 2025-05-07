@@ -47,8 +47,6 @@ float err1 = 0.0;
 float prev_err1 = 0.0;
 float integ1 = 0.0;
 float der1 = 0.0; 
-
-
 ///////// feeding
 
 

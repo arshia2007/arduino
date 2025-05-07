@@ -13,8 +13,8 @@ void setup()
   Serial.begin(9600);
   right.attach(1);
   left.attach(2);
-  right.write(0);
-  left.write(180);
+  right.write(180-15);
+  left.write(15);
 
 }
 
@@ -37,13 +37,13 @@ void loop()
       Serial.println("Angle: ");
       if (angle>last2){
         for (i=last2; i <= angle; i++){
-          right.write(i);
-          left.write(180-i);
+          right.write(180-angle);
+          left.write(angle-3);
         }
       }else {
         for (i = last2; i>=angle; i--){
-          right.write(i);
-          left.write(180-i);
+          right.write(180-angle);
+          left.write(angle-3);
         }
       }
       last1 = 180-i;

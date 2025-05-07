@@ -5,14 +5,15 @@ IntervalTimer pid_timer;
 IntervalTimer ps4Timer;
 
 // drive
-Encoder myEnc[3] = { Encoder(36, 33), Encoder(38, 37), Encoder(40, 39) };
+// Encoder myEnc[3] = { Encoder(36, 33), Encoder(38, 37), Encoder(40, 39) };
+Encoder myEnc[3] = { Encoder(22, 23), Encoder(20, 21), Encoder(18, 17) };
 
 //PS4 connection 
 USBHost myusb;   // initializes and manages the USB host port, enabling Teensy to detect and commuincate with USB bluetooth dongle
 USBHIDParser hid1(myusb);  //works behind the scenes to parse HID data that comes from the PS4 controller, such as joystick movements and button presses.
 JoystickController joystick1(myusb);
-BluetoothController bluet(myusb, true, "0000"); 
-// BluetoothController bluet(myusb);   // Version does pairing to device
+// BluetoothController bluet(myusb, true, "0000"); 
+BluetoothController bluet(myusb);   // Version does pairing to device
 uint32_t buttons;
 bool isJoystick = 0;
 bool flag = 0;
@@ -21,8 +22,10 @@ int lastTime=0;
 
 //coordinates of joystick (x,y -> right joystick; leftX -> left joystick)
 int x, y, leftX;  
-int PWM[3] = { 4, 5, 3 };
-int DIR[3] = { 6, 7, 2 };
+// int PWM[3] = { 4, 5, 3 };
+// int DIR[3] = { 6, 7, 2 };
+int PWM[3] = { 4, 6, 10 };
+int DIR[3] = { 3, 5, 11 };
 
 
 long currentCounts[3] = {0,0,0};
@@ -184,9 +187,9 @@ void drive_pid() {
   sp[1] = map(sp[1], -72, 72, -max_rpm, max_rpm);
   sp[2] = map(sp[2], -72, 72, -max_rpm, max_rpm);
 
-  // Serial.printf(" sp1:%0.2f", sp[0]);
-  // Serial.printf(" sp2:%0.2f", sp[1]);
-  // Serial.printf(" sp3:%0.2f", sp[2]);
+  Serial.printf(" sp1:%0.2f", sp[0]);
+  Serial.printf(" sp2:%0.2f", sp[1]);
+  Serial.printf(" sp3:%0.2f", sp[2]);
 
   // Calculate RPM
   for (int i=0; i<3; i++){
@@ -196,9 +199,9 @@ void drive_pid() {
     lastCount[i] = currentCounts[i];
 
   }
-  // Serial.printf(" rpm1:%f", rpm[0]);
-  // Serial.printf(" rpm2:%f", rpm[1]);
-  // Serial.printf(" rpm3:%f\n", rpm[2]);
+  Serial.printf(" rpm1:%f", rpm[0]);
+  Serial.printf(" rpm2:%f", rpm[1]);
+  Serial.printf(" rpm3:%f\n", rpm[2]);
 
   //PID Control
   for (int i=0; i<3; i++){

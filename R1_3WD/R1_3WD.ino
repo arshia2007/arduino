@@ -87,7 +87,7 @@ void loop() {
   //runMotor(IN2, ENB, V2);
   //runMotor(IN3, ENC, V3);
 
-  delay(200);  // Small delay for stability
+  // delay(200);  // Small delay for stability
 }
 
 void runMotor(int IN, int EN, float speed) {
